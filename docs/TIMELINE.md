@@ -1,6 +1,6 @@
 # Timeline und Versionsschritte
 
-Der fachliche Entwicklungsplan steht in [project.md](../project.md).
+Der fachliche Entwicklungsplan steht in [Entwicklungsplan.md](Entwicklungsplan.md).
 Alle folgenden Meilensteine sind geplant. Zielversionen beschreiben die
 vorgesehene Reihenfolge und sind noch keine veröffentlichten Releases.
 Termine werden ergänzt, sobald Hardware, Aufwand und Verfügbarkeit geklärt sind.
@@ -16,11 +16,12 @@ Termine werden ergänzt, sobald Hardware, Aufwand und Verfügbarkeit geklärt si
 | 0.5.0 | Vier Achsen X/Y/U/V | 0.4.0 abgeschlossen | Alle Achsen kalibriert; Vorschubdefinition, Referenzierung und gemeinsame Fehlerbehandlung geprüft | Geplant | Offen |
 | 0.6.0 | Vollständiger Aufbau und Trockenläufe | 0.5.0 abgeschlossen | Referenzauftrag ohne Heizung wiederholbar; Arbeitsbereiche und Stoppfälle geprüft | Geplant | Offen |
 | 0.7.0 | Erste kontrollierte Testschnitte | 0.6.0 abgeschlossen; Heizung und Abschaltung spezifiziert und geprüft | Schnittgeometrie und Wiederholgenauigkeit anhand festgelegter Kriterien dokumentiert | Geplant | Offen |
+| 0.8.0 | WLAN-Zugang und Webbedienung | 0.7.0 abgeschlossen; USB-Konfiguration und Verbindungsverhalten festgelegt | Neustart mit WLAN-Verbindung, lokale Anmeldung, geschützter G-Code-Upload und Mausbedienung im Trockenlauf geprüft; unautorisierte Zugriffe und Verbindungsabbrüche geprüft | Geplant | Offen |
 | 1.0.0 | Dokumentierter Grundbetrieb | Vorherige Meilensteine abgeschlossen | Referenzauftrag und Fehlerfälle bestanden; Installation, Bedienung, Kalibrierung und Grenzen dokumentiert | Geplant | Offen |
 
-WLAN-Bedienung und zusätzliche G-Code-Funktionen erhalten eigene Meilensteine,
-sobald ihr Umfang feststeht. Sie sind keine Voraussetzung für die ersten
-einachsigen Tests.
+WLAN-Bedienung ist für Version 0.8.0 vorgesehen und keine Voraussetzung für
+die ersten einachsigen Tests. Zusätzliche G-Code-Funktionen erhalten eigene
+Meilensteine, sobald ihr Umfang feststeht.
 
 ## Pflege der Timeline
 

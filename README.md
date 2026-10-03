@@ -7,5 +7,6 @@
 
 ## Dokumentation
 
-- [Entwicklungsplan](project.md): vom einachsigen Testaufbau zur Vierachsensteuerung.
+- [Pico und DRV8825: Aufbau und Inbetriebnahme](docs/Raspi_pico_DRV8825.md): deutsche Anleitung für den Einzelachsentest.
+- [Entwicklungsplan](docs/Entwicklungsplan.md): vom einachsigen Testaufbau zur Vierachsensteuerung.
 - [Timeline und Versionsschritte](docs/TIMELINE.md): geplante Meilensteine und Vorlage für das Versionsprotokoll.

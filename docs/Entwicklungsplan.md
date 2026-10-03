@@ -1,6 +1,6 @@
 # Entwicklungsplan: xyuv-control
 
-![xyuv-control – X/Y/U/V Heißdraht-CNC](docs/images/xyuv-control-banner.png)
+![xyuv-control – X/Y/U/V Heißdraht-CNC](images/xyuv-control-banner.png)
 
 
 
@@ -14,7 +14,7 @@ Entwicklung; es dokumentiert noch keine implementierten Funktionen.
 Die Entwicklung beginnt mit einem einachsigen Testaufbau. Damit werden
 Elektronik, Bewegungssteuerung und Fehlerbehandlung zunächst an einem Motor
 geprüft. Anschließend wird die Steuerung schrittweise auf vier Achsen erweitert.
-Meilensteine und Versionsprotokolle stehen in [docs/TIMELINE.md](docs/TIMELINE.md).
+Meilensteine und Versionsprotokolle stehen in [TIMELINE.md](TIMELINE.md).
 
 ## Phase 1: Einachsigen Testaufbau vorbereiten
 
@@ -99,12 +99,40 @@ Referenzierung und Fehlerbehandlung sind für alle Achsen geprüft.
 - Erst nach bestandenen Trockenläufen kontrollierte Testschnitte durchführen
   und Schnittgeometrie, Vorschub und Wiederholgenauigkeit protokollieren.
 - Installation, unterstützten G-Code, Bedienung, Kalibrierung und bekannte
-  Grenzen dokumentieren. WLAN-Bedienung kann anschließend ergänzt werden;
-  ihr Verbindungsverhalten ist vor dem Betrieb zu prüfen.
+  Grenzen dokumentieren.
 
 **Abschlusskriterium:** Ein vollständiger Referenzauftrag lässt sich vom Start
 über die Referenzfahrt bis zum Schnitt nachvollziehbar wiederholen; dokumentierte
 Stopp- und Fehlerfälle sind geprüft.
+
+## Phase 6: WLAN-Zugang und Webbedienung
+
+Die Ersteinrichtung erfolgt per USB direkt auf dem Pico. Eine lokale
+Konfigurationsdatei enthält WLAN-SSID, WLAN-Passwort und einen lokalen Benutzer
+mit Zugangsdaten für die Weboberfläche. Änderungen werden nach einem Neustart
+übernommen. USB bleibt der Zugang für Konfiguration und Diagnose, auch wenn
+die WLAN-Verbindung nicht hergestellt werden kann.
+
+- Nach dem Neustart verbindet sich der Pico mit dem konfigurierten WLAN und
+  stellt eine Weboberfläche bereit. Die erreichbare Adresse wird über USB
+  ausgegeben.
+- Der Benutzer öffnet die Oberfläche im Browser und meldet sich mit dem
+  lokalen Benutzer an. Upload und Steuerbefehle erfordern eine gültige
+  Anmeldung; die Zugangskontrolle gilt auch für die zugehörigen Server-Endpunkte.
+- G-Code-Dateien lassen sich hochladen, auswählen und vor dem Start prüfen.
+  Ein Upload startet keine Bewegung; ungültige Dateien werden abgelehnt.
+- Die Mausbedienung umfasst manuelles Verfahren der Achsen, Referenzfahrt
+  sowie Start und Stopp eines ausgewählten Auftrags. Positionen und
+  Steuerungszustand werden in der Oberfläche angezeigt.
+- Manuelles Verfahren erfolgt zunächst über begrenzte Einzelschritte pro
+  Klick. Zulässige Verfahrwege und Zustände gelten auch für Webbefehle.
+- Verhalten bei WLAN-Abbruch, abgelaufener Sitzung und mehreren geöffneten
+  Browsern festlegen und prüfen. Eine neue Verbindung oder Anmeldung darf
+  keine Bewegung automatisch wieder aufnehmen.
+
+**Abschlusskriterium:** Konfiguration per USB, Neustart, WLAN-Verbindung,
+Anmeldung, G-Code-Upload und Mausbedienung funktionieren im Trockenlauf;
+unautorisierte Zugriffe und Verbindungsabbrüche sind geprüft.
 
 ## Offene Entscheidungen
 
@@ -112,7 +140,12 @@ Stopp- und Fehlerfälle sind geprüft.
 - Messbare Toleranzen für Position, Wiederholgenauigkeit und Pulstiming.
 - Maximale Schrittfrequenz und geeignete Pulserzeugung auf dem Pico 2 W.
 - Vorschubdefinition für koordinierte X/Y/U/V-Bewegungen.
-- Umfang der Drahtheizungssteuerung und der späteren WLAN-Bedienung.
+- Umfang der Drahtheizungssteuerung.
+- Format der Konfigurationsdatei, Speicherung des lokalen Benutzerpassworts
+  und Absicherung der Anmeldung bei der Übertragung.
+- Dateigrößenlimit und Speicherverwaltung für hochgeladene G-Code-Dateien.
+- Verhalten laufender Aufträge bei WLAN-Abbruch oder abgelaufener Sitzung
+  sowie Regeln für gleichzeitige Bedienung über mehrere Browser.
 
 Diese Entscheidungen werden beim jeweiligen Meilenstein festgehalten. Neue
 Funktionen bauen auf bestandenen Prüfungen des vorherigen Schritts auf.
