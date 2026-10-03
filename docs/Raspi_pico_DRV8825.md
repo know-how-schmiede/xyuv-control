@@ -1,7 +1,7 @@
 # Raspberry Pi Pico / Pico 2 W mit DRV8825
 
 Deutsche Anleitung für den einachsigen Testaufbau von **xyuv-control**.
-Stand: 03.10.2026. Diese Anleitung beschreibt einen geplanten Aufbau; das
+Stand: 04.10.2026. Diese Anleitung beschreibt einen geplanten Aufbau; das
 Testprogramm wurde noch nicht an der Hardware ausgeführt.
 
 ## 1. Ziel und Grundlagen
@@ -40,6 +40,15 @@ Der Kondensatorwert ist ein Planungswert und muss für die spätere Platine
 anhand Leitungslänge, Versorgung und Messungen überprüft werden. Eine
 Spannungsreserve ersetzt keine Schutzschaltung gegen Spannungsspitzen.
 Motorströme nicht über dünne Steckbrettleitungen führen.
+
+### Spannungsspitzen und Kühlkörper
+
+Leitungsinduktivität und niederohmige Keramikkondensatoren können beim
+Schalten Spannungsspitzen erzeugen, auch bei nur 12 V Versorgung.
+Ein Elko unmittelbar an VMOT/GND hilft gegen diese LC-Spitzen.
+Den Kühlkörper so montieren, dass er keine Pins oder Bauteile kurzschließt.
+Diese zusätzlichen Hinweise stammen aus
+[Last Minute Engineers](https://lastminuteengineers.com/drv8825-stepper-motor-driver-arduino-tutorial/).
 
 Die projektspezifischen [Treibermodule](https://link.amazon/B02MzzIzi) sind noch
 nicht eindeutig identifiziert. Vor dem Anschluss ihre Beschriftung,
@@ -96,6 +105,19 @@ Treiber bei hochohmigem GP18 deaktiviert. Der reine Software-Startwert schützt
 nicht während des gesamten Bootvorgangs. Alleinige Motorversorgung ohne
 Pico-Versorgung separat prüfen; dafür benötigt die endgültige Platine eine
 auch in diesem Zustand wirksame Freigabeschaltung.
+
+### 4.1.1 ENABLE, SLEEP und RESET unterscheiden
+
+| Eingang auf LOW | Wirkung am DRV8825 |
+| --- | --- |
+| ENABLE | Ausgänge aktiv |
+| SLEEP | Stromsparmodus |
+| RESET | Ausgänge aus; interner Schrittindex zurückgesetzt |
+
+RESET fährt die Maschine **nicht** zum Referenzschalter und bestimmt keine
+mechanische Position. Eine Referenzfahrt bleibt erforderlich. Offenes ENABLE
+kann wegen des internen Pull-downs aktiv sein; daher die externe Freigabe
+verwenden. Grundlage: [TI, Pin-Funktionen](https://www.ti.com/lit/ds/symlink/drv8825.pdf).
 
 FAULT bleibt beim ersten Test unbeschaltet. Vor späterer GPIO-Anbindung
 Modulschaltung prüfen, einschließlich einer möglichen Kopplung an SLEEP.
@@ -215,6 +237,70 @@ Widerständen auf dem Modul verwechseln.
 Später nur so weit erhöhen, wie Drehmoment und Temperaturmessungen es erfordern.
 Thermische Abschaltung kann wie ein sporadischer Bewegungsfehler aussehen.
 
+### 7.3 Wicklungsstrom im Vollschritt richtig einordnen
+
+Im Vollschritt beträgt der Sollstrom jeder Wicklung etwa 71 % der eingestellten
+Stromgrenze. Grundlage ist die Stromtabelle in
+[TI, Abschnitt 8.3.3](https://www.ti.com/lit/ds/symlink/drv8825.pdf).
+
+Eigene Rechenbeispiele:
+
+```text
+Stromgrenze 1,50 A -> Vollschritt-Wicklungsstrom etwa 1,06 A
+Gemessene 1,50 A im Vollschritt -> Stromgrenze etwa 2,12 A
+```
+
+Die zweite Einstellung wäre für den vorgesehenen 1,5-A-Motor zu hoch,
+insbesondere beim späteren Microstepping. VREF bleibt hier die bevorzugte
+Einstellmethode. Bei ergänzender Strommessung das Messgerät spannungsfrei
+in Reihe mit einer Wicklung anschließen, niemals parallel zur Versorgung.
+Messbereich, Sicherung und Eignung für den getakteten Wicklungsstrom prüfen.
+
+### 7.4 Warum eine höhere Motorversorgung möglich ist
+
+Ein stromgeregelter Treiber ermöglicht eine Versorgung oberhalb der
+Wicklungs-Nennspannung. Das kann höhere Schrittgeschwindigkeiten ermöglichen;
+die korrekt eingestellte Stromgrenze bleibt entscheidend.
+Siehe [Last Minute Engineers, Strombegrenzung](https://lastminuteengineers.com/drv8825-stepper-motor-driver-arduino-tutorial/#).
+Die Motorwicklung deshalb niemals direkt an die 24-V-Versorgung anschließen.
+
+### 7.5 Pololu-Video zur Einstellung der Stromgrenze
+
+Pololu verlinkt in seinen offiziellen Modulunterlagen dieses Video:
+
+**[Video: Strombegrenzung an Pololu-Schrittmotortreibern einstellen](https://www.youtube.com/watch?v=89BHS9hfSUk)**
+
+Nachweis des Videoverweises: [Pololu, Resources](https://www.pololu.com/product/2133/resources).
+Die Videoseite selbst war beim Prüfen nicht abrufbar; der Link ist auf der
+Herstellerseite bestätigt.
+
+Für unseren Aufbau beim Ansehen beachten:
+
+- Die Berechnung aus Abschnitt 7.1 und den tatsächlich bestückten
+  Sense-Widerstand verwenden.
+- Die Stromgrenze am konkreten Motor und an der Kühlung ausrichten.
+- Die Messung und Verkabelung nach Abschnitt 7.2 durchführen.
+
+### 7.6 Zusätzliche Angaben zum Pololu-Modul 2133
+
+Laut [Pololu-Produktseite](https://www.pololu.com/product/2133) ist das Modul
+für 3,3-V- und 5-V-Steuersignale geeignet und auf Mixed Decay eingestellt.
+Der VREF-Messpunkt liegt an einer auf der Unterseite markierten Durchkontaktierung.
+Für das Originalmodul werden ungefähr 1,5 A je Phase ohne zusätzliche Kühlung
+und bis 2,2 A mit ausreichender Kühlung angegeben. Diese Werte gelten nicht
+automatisch für die vorgesehenen Amazon-Module.
+
+Am Pololu-Modul verbindet ein 10-kΩ-Widerstand FAULT mit SLEEP; ein
+1,5-kΩ-Widerstand liegt in Reihe zum FAULT-Anschluss. Wird SLEEP über einen
+externen Pull-up gehalten, empfiehlt Pololu höchstens 4,7 kΩ, damit ein Fehler
+SLEEP nicht herunterzieht. Das ergänzt die Modulprüfung in Abschnitt 4.1;
+keine solche Beschaltung für Nachbaumodule voraussetzen.
+
+Für korrektes Microstepping muss die Stromregelung tatsächlich eingreifen.
+Eine zu hoch eingestellte Stromgrenze kann verhindern, dass die vorgesehenen
+Zwischenströme erreicht werden. Deshalb bei ungleichmäßigen Mikroschritten
+auch VREF und Versorgung prüfen, nicht nur M0/M1/M2.
+
 ## 8. Vollschritt und Microstepping
 
 Die folgende Tabelle folgt [TI, Abschnitt 8.3.3](https://www.ti.com/lit/ds/symlink/drv8825.pdf).
@@ -230,6 +316,12 @@ LOW = GND, HIGH = 3,3 V; M0/M1/M2 nicht während einer Bewegung umschalten.
 | HIGH | LOW | HIGH | 1/32 |
 | LOW | HIGH | HIGH | 1/32 |
 | HIGH | HIGH | HIGH | 1/32 |
+
+M0/M1/M2 besitzen interne Pull-downs; ohne zusätzliche Modulbeschaltung
+bedeutet offen deshalb Vollschritt. Für die Platine definierte Jumperstellungen
+vorsehen. Für **1/16**: M0 und M1 an GND, M2 an Pico-3,3 V.
+Das Potentiometer verändert die Stromgrenze, nicht die Schrittauflösung.
+[TI](https://www.ti.com/lit/ds/symlink/drv8825.pdf)
 
 Für einen Motor mit 1,8° ergeben sich rechnerisch 200 Vollschritte pro Umdrehung.
 Bei 1/16 sind es 3200 STEP-Pulse. Microstepping erhöht die Ansteuerauflösung;
@@ -370,12 +462,45 @@ Vierachsbewegungen werden gemäß [Entwicklungsplan](Entwicklungsplan.md)
 Bewegungsplanung und PIO-Pulsausgabe entwickelt und unter Last gemessen.
 WLAN und Webserver dürfen die Pulsausgabe nicht unkontrolliert verzögern.
 
+### Arduino-Beispiele und koordinierte Bewegung
+
+Der zusätzliche Artikel zeigt AccelStepper-Beispiele für Rampen und mehrere
+Motoren. Diese Arduino-C++-Programme laufen nicht direkt unter MicroPython.
+Für unser Projekt dienen sie als Konzeptreferenz; die bestehende Pico-Pinbelegung
+und das Testprogramm bleiben maßgeblich.
+
+Mehrere unabhängig gestartete Motoren ergeben noch keine gemeinsame
+Vierachsinterpolation. Die offizielle
+[MultiStepper-Dokumentation](https://www.airspayce.com/mikem/arduino/AccelStepper/classMultiStepper.html)
+beschreibt koordinierte Ankunft bei konstanter Geschwindigkeit, jedoch ohne
+Beschleunigung oder Verzögerung. Für den Cutter werden zusätzlich gemeinsame
+Rampen und die Einhaltung aller Achsengrenzen benötigt.
+
+### Fehlerabschaltung korrekt behandeln
+
+Überstromabschaltung bleibt bis RESET oder erneutem Einschalten der
+Motorversorgung bestehen. Bei thermischer Abschaltung kann der IC nach
+Abkühlung selbst wieder aktiv werden.
+[TI, Abschnitt 8.3.7](https://www.ti.com/lit/ds/symlink/drv8825.pdf)
+Die Firmware muss einen Treiberfehler deshalb als Maschinenfehler festhalten
+und die erneute Bewegung ausdrücklich freigeben lassen.
+
 ## 14. Quellen und Bildnachweise
 
+- [Last Minute Engineers: DRV8825 mit Arduino](https://lastminuteengineers.com/drv8825-stepper-motor-driver-arduino-tutorial/)
+  – zusätzliche Hinweise sinngemäß auf Deutsch zusammengefasst und für den
+  Pico angepasst. RESET bedeutet keine mechanische Rückfahrt; die Aussage
+  zur Fehlerverriegelung gilt nicht pauschal für thermische Abschaltung.
+- [AccelStepper: MultiStepper-Dokumentation](https://www.airspayce.com/mikem/arduino/AccelStepper/classMultiStepper.html)
+  – Grenzen der koordinierten Arduino-Beispiele.
 - [How2Electronics: Control Stepper Motor with DRV8825 & Raspberry Pi Pico](https://how2electronics.com/control-stepper-motor-with-drv8825-raspberry-pi-pico/)
   – Ausgangsartikel und drei ausgewählte Abbildungen, jeweils oben verlinkt.
 - [Texas Instruments: DRV8825 Datasheet](https://www.ti.com/lit/ds/symlink/drv8825.pdf)
   – Stromregelung, Microstepping, Pin-Funktionen und Timing.
+- [Pololu: Produktseite DRV8825, Artikel 2133](https://www.pololu.com/product/2133)
+  – zusätzliche Angaben zu Kühlung, Messpunkt, FAULT/SLEEP und Stromregelung.
+- [Pololu: Video zur Strombegrenzung](https://www.youtube.com/watch?v=89BHS9hfSUk)
+  – Videoverweis aus den offiziellen Herstellerunterlagen.
 - [Pololu: Modulunterlagen](https://www.pololu.com/product/2133/resources)
   und [vollständiger Modulschaltplan als PDF](https://www.pololu.com/file/0J603/drv8824-drv8825-stepper-motor-driver-carrier-schematic-diagram.pdf)
   – Referenz für den Modulaufbau; keine Zusicherung für Nachbaumodule.
